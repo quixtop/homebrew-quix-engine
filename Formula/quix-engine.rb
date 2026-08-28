@@ -21,7 +21,7 @@
 #
 # ⚠️ The tap repo MUST carry the `homebrew-` prefix: `github.com/quixtop/homebrew-quix-engine`.
 # brew derives the repo name from the tap name by adding it, so a repo called plain `quix-engine`
-# is invisible to `brew install quixtop/quix-engine`.
+# is invisible to `brew tap quixtop/quix-engine && brew install quix-engine`.
 #
 # ⚠️ RELEASES ARE HOSTED IN THE TAP REPO ITSELF, deliberately. The code lives in shrix/cf-worx, and
 # pointing the formula there would mean a second repo, a second release process, and a public
@@ -31,7 +31,7 @@
 # To publish: create `github.com/quixtop/homebrew-quix-engine`, drop this file in as
 # `Formula/quix-engine.rb`, attach the binaries from `bin/quix engine-build` to a release there,
 # and fill in the hashes from the generated SHA256SUMS file. Then:
-#     brew install quixtop/quix-engine
+#     brew tap quixtop/quix-engine && brew install quix-engine
 class QuixEngine < Formula
   desc "Local engine for quix — Telegram and Gmail for the strm web client"
   homepage "https://quixtop.com"
@@ -69,6 +69,10 @@ class QuixEngine < Formula
   def install
     # The downloaded artifact keeps its platform-stamped name; install it under the plain command.
     bin.install Dir["quix-engine-*"].first => "quix-engine"
+    # ⚠️ EXPLICIT +x. A raw (non-archive) download arrives 0644 — there is no tarball to carry the
+    # mode — and bin.install does not reliably add it. Without this the install "succeeds" and the
+    # first run answers `permission denied`, which reads as a broken binary rather than a mode.
+    (bin/"quix-engine").chmod 0755
   end
 
   # ⚠️ NOT a `service` block, deliberately. A launchd service would start the engine at boot on
